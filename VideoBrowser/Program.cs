@@ -4,7 +4,7 @@
     {
         static void Main(string[] args)
         {
-            VideoBrowserGenerator.GenerateFile(@"C:\Users\Simon\Desktop");
+            VideoBrowserGenerator.GenerateFile(args[0]);
         }
     }
 }

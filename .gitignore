@@ -46,3 +46,6 @@ Temporary Items
 packages
 bin
 obj
+
+.idea
+*DotSettings.user

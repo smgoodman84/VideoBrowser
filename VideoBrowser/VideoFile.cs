@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Nodes;
 
 namespace VideoBrowser
 {
@@ -12,11 +14,69 @@ namespace VideoBrowser
             SubDirectory = subDirectory;
 
             Filename = file.Substring(SubDirectory.Length + 1);
+            Imagename = GetImageFilename();
+            ProcessMetadata();
+            Title ??= Filename;
+            Timestamp ??= int.MinValue;
         }
+
+        private void ProcessMetadata()
+        {
+            var metadataFilename = Path.Join(SubDirectory, $"{Filename}.json");
+            if (!File.Exists(metadataFilename))
+            {
+                return;
+            }
+
+            try
+            {
+                var jsonContent = File.ReadAllText(metadataFilename);
+                var jsonObject = JsonObject.Parse(jsonContent);
+                if (jsonObject == null)
+                {
+                    return;
+                }
+                
+                Title = jsonObject["title"]?.GetValue<string>();
+                Timestamp = jsonObject["timestamp"]?.GetValue<int>();
+            }
+            catch (Exception e)
+            {
+            }
+        }
+
+        private static string[] _imageExtensions = new[] { "jpg", "webp" };
+        private string GetImageFilename()
+        {
+            if (!Filename.Contains('.'))
+            {
+                return null;
+            }
+            
+            var filenameNoExtension = Filename.Substring(0, Filename.LastIndexOf('.'));
+
+            foreach (var name in new string[] { filenameNoExtension, Filename })
+            {
+                foreach (var extension in _imageExtensions)
+                {
+                    var imageName = $"{name}.{extension}";
+                    if (File.Exists(Path.Join(SubDirectory, imageName)))
+                    {
+                        return imageName;
+                    }
+                }
+            }
+
+            return null;
+        }
+        
 
         public string BaseDirectory { get; set; }
         public string SubDirectory { get; set; }
         public string Filename { get; set; }
+        public string Imagename { get; set; }
+        public string Title { get; set; }
+        public int? Timestamp { get; set; }
 
         public string Fullpath
         {
@@ -29,10 +89,11 @@ namespace VideoBrowser
             {
                 ".mkv",
                 ".avi",
-                ".mp4"
+                ".mp4",
+                ".webm"
             };
 
-            return extensions.Any(filename.EndsWith);
+            return extensions.Any(filename.EndsWith) && !filename.StartsWith("._");
         }
         private bool IsVideoFile()
         {

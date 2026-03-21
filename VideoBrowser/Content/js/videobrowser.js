@@ -4,6 +4,8 @@ var basedir = "C:\\Users\\Simon\\Desktop\\TV";
 filedata[0] = new Object();
 filedata[0].subdir = "C:\\Users\\Simon\\Desktop\\TV";
 filedata[0].filename = "Episode1.mkv";
+filedata[0].imagename = "Episode1.mkv.jpg";
+filedata[0].title = "Episode1";
 
 directories = [];
 directories[0] = new Object();
@@ -21,12 +23,13 @@ function playVideo(file) {
         var caption = document.getElementById("caption");
 
         var filename = file.dataset.filename;
+        var title = file.dataset.title;
         vsource.setAttribute("src", filename);
 
         var actualSrc = vsource.getAttribute("src");
 
         var displayFilename = actualSrc.substr(actualSrc.lastIndexOf("\\") + 1);
-        caption.innerHTML = displayFilename;
+        caption.innerHTML = title;
 
         video.load();
         video.play();
@@ -39,19 +42,49 @@ function onDirectoryClick(dir) {
     }
 }
 
-function addBrowserItem(filelist, iconName, text, className, iconClassName, dataType, dataValue) {
+function addDirectoryItem(directorylist, text, iconClassName, dataValue) {
+
     var textNode = document.createTextNode(" " + text);
 
     var i = document.createElement("i");
     i.setAttribute("class", iconClassName);
 
-    var p = document.createElement("p");
-    p.setAttribute("class", className);
-    p.setAttribute(dataType, dataValue);
-    p.appendChild(i);
-    p.appendChild(textNode);
+    var span = document.createElement("span");
+    span.setAttribute("class", "directory");
+    span.setAttribute("data-directory", dataValue);
+    span.appendChild(i);
+    span.appendChild(textNode);
 
-    filelist.appendChild(p);
+    directorylist.appendChild(span);
+}
+
+function addFileItem(filelist, filename, title, imagename) {
+
+    var div = document.createElement("div");
+    div.setAttribute("class", "video_listing");
+    div.setAttribute("data-filename", filename);
+    div.setAttribute("data-title", title);
+
+    if (imagename != "") {
+        var img = document.createElement("img");
+        img.setAttribute("src", imagename);
+        img.setAttribute("class", "video_thumbnail");
+
+        var br = document.createElement("br");
+
+        div.appendChild(img);
+        div.appendChild(br);
+    }
+    
+    var textNode = document.createTextNode(title);
+
+    var p = document.createElement("p");
+    p.setAttribute("class", "file");
+    p.appendChild(textNode);
+    
+    div.appendChild(p);
+    
+    filelist.appendChild(div);
 }
 
 function forEachElementWithClassName(className, action) {
@@ -63,7 +96,9 @@ function forEachElementWithClassName(className, action) {
 
 function renderBrowser(currentDir) {
     var filelist = document.getElementById("filelist");
+    var directorylist = document.getElementById("directorylist");
     filelist.innerHTML = "";
+    directorylist.innerHTML = "";
 
     function addBrowserDirectory(name, directory, isOpen) {
         var iconClass = "fa fa-folder";
@@ -71,7 +106,7 @@ function renderBrowser(currentDir) {
             iconClass = "fa fa-folder-open";
         }
 
-        addBrowserItem(filelist, "folderIcon", name, "directory", iconClass, "data-directory", directory);
+        addDirectoryItem(directorylist, name, iconClass, directory);
     }
 
     if (currentDir !== basedir) {
@@ -94,12 +129,13 @@ function renderBrowser(currentDir) {
     filedata.forEach(function (fd) {
         if (fd.subdir === currentDir) {
             var fileName = fd.subdir + "\\" + fd.filename;
-            addBrowserItem(filelist, "fa fa-film", fd.filename, "file", "fa fa-film", "data-filename", fileName);
+            var imageName = fd.subdir + "\\" + fd.imagename;
+            addFileItem(filelist, fileName, fd.title, imageName);
         }
     });
 
 
-    forEachElementWithClassName("file",
+    forEachElementWithClassName("video_listing",
         function (element) {
             element.addEventListener("click", playVideo(element));
         });
