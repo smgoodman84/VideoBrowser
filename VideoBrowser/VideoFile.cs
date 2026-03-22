@@ -45,7 +45,7 @@ namespace VideoBrowser
                 if (duration != null)
                 {
                     var timespan = TimeSpan.FromSeconds(duration.Value);
-                    Duration = timespan.ToString("h");
+                    Duration = timespan.ToString();
                     while (Duration.StartsWith("0") || Duration.StartsWith(":"))
                     {
                         Duration = Duration.Substring(1);
