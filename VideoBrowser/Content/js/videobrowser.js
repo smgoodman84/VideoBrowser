@@ -6,6 +6,7 @@ filedata[0].subdir = "C:\\Users\\Simon\\Desktop\\TV";
 filedata[0].filename = "Episode1.mkv";
 filedata[0].imagename = "Episode1.mkv.jpg";
 filedata[0].title = "Episode1";
+filedata[0].duration = "00:00:01";
 
 directories = [];
 directories[0] = new Object();
@@ -58,7 +59,7 @@ function addDirectoryItem(directorylist, text, iconClassName, dataValue) {
     directorylist.appendChild(span);
 }
 
-function addFileItem(filelist, filename, title, imagename) {
+function addFileItem(filelist, filename, title, duration, imagename) {
 
     var div = document.createElement("div");
     div.setAttribute("class", "video_listing");
@@ -83,6 +84,13 @@ function addFileItem(filelist, filename, title, imagename) {
     p.appendChild(textNode);
     
     div.appendChild(p);
+    
+    if (duration != "") {
+        var durationP = document.createElement("p");
+        var durationTextNode = document.createTextNode("[" + duration + "]");
+        durationP.appendChild(durationTextNode);
+        div.appendChild(durationP);
+    }
     
     filelist.appendChild(div);
 }
@@ -130,7 +138,7 @@ function renderBrowser(currentDir) {
         if (fd.subdir === currentDir) {
             var fileName = fd.subdir + "\\" + fd.filename;
             var imageName = fd.subdir + "\\" + fd.imagename;
-            addFileItem(filelist, fileName, fd.title, imageName);
+            addFileItem(filelist, fileName, fd.title, fd.duration, imageName);
         }
     });
 

@@ -18,6 +18,7 @@ namespace VideoBrowser
             ProcessMetadata();
             Title ??= Filename;
             Timestamp ??= int.MinValue;
+            Duration ??= "";
         }
 
         private void ProcessMetadata()
@@ -39,6 +40,17 @@ namespace VideoBrowser
                 
                 Title = jsonObject["title"]?.GetValue<string>();
                 Timestamp = jsonObject["timestamp"]?.GetValue<int>();
+                
+                var duration = jsonObject["duration"]?.GetValue<int>();
+                if (duration != null)
+                {
+                    var timespan = TimeSpan.FromSeconds(duration.Value);
+                    Duration = timespan.ToString("h");
+                    while (Duration.StartsWith("0") || Duration.StartsWith(":"))
+                    {
+                        Duration = Duration.Substring(1);
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -76,6 +88,7 @@ namespace VideoBrowser
         public string Filename { get; set; }
         public string Imagename { get; set; }
         public string Title { get; set; }
+        public string Duration { get; set; }
         public int? Timestamp { get; set; }
 
         public string Fullpath

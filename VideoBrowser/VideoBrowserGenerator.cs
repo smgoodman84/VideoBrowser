@@ -57,6 +57,7 @@ namespace VideoBrowser
                 sb.AppendLine(string.Format(@"filedata[{0}].filename = ""{1}"";", i, UrlEncode(JsStringEscape(file.Filename))));
                 sb.AppendLine(string.Format(@"filedata[{0}].imagename = ""{1}"";", i, UrlEncode(JsStringEscape(file.Imagename))));
                 sb.AppendLine(string.Format(@"filedata[{0}].title = ""{1}"";", i, JsStringEscape(file.Title)));
+                sb.AppendLine(string.Format(@"filedata[{0}].duration = ""{1}"";", i, JsStringEscape(file.Duration)));
                 i++;
             }
 
