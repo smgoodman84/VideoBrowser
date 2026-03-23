@@ -110,7 +110,7 @@ function onSearch() {
 }
 
 function inSearchResults(fileData, searchValue) {
-    return fileData.title.includes(searchValue);
+    return fileData.title.toLowerCase().includes(searchValue.toLowerCase());
 }
 
 function inDirectory(fileData, currentDir) {
