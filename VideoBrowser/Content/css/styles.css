@@ -1,9 +1,9 @@
 ﻿body {
-	margin: 0;
+    margin: 0;
     font-family: Verdana;
     font-size: 0.8rem;
-	background-color: #5f9ae5;
-	display: flex;
+    background-color: #5f9ae5;
+    display: flex;
 }
 
 .fa {
@@ -13,7 +13,7 @@
 ul {
     list-style: none;
     padding-left: 0;
-	margin: 10px;
+    margin: 10px;
 }
 
 li {
@@ -32,13 +32,13 @@ p i {
 }
 
 span.directory {
-    margin: 1em;
+    margin: 0.5em;
 }
 
 #videoplayer {
-	background-color: #426b9f;
-	padding: 25px;
-	position: fixed;
+    background-color: #426b9f;
+    padding: 25px;
+    position: fixed;
     border-radius: 10px;
     margin-top: 150px;
     margin-right: 50px;
@@ -46,18 +46,19 @@ span.directory {
 }
 
 #videocolumn {
-	position: relative;
-	padding-right: 50px;
+    position: relative;
+    padding-right: 50px;
 }
 
 #browser {
-	width: 60%;
+    width: 60%;
+    margin: 2em;
 }
 
 #caption {
     color: #EEE;
-	width: 100%;
-	text-align: center;
+    width: 100%;
+    text-align: center;
 }
 
 #video {
@@ -102,4 +103,13 @@ span.directory {
 #searchcontainer p {
     margin: 0em;
     padding-bottom: 1em;
+}
+
+#dircontainer {
+    background-color: #426b9f;
+    color: #EEE;
+
+    width: 90%;
+    border-radius: 10px;
+    margin: 0px 10px 10px 10px;
 }

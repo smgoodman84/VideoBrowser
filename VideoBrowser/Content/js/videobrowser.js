@@ -45,14 +45,14 @@ function onDirectoryClick(dir) {
     }
 }
 
-function addDirectoryItem(directorylist, text, iconClassName, dataValue) {
+function addDirectoryItem(directorylist, text, iconClassName, dataValue, elementType) {
 
     var textNode = document.createTextNode(" " + text);
 
     var i = document.createElement("i");
     i.setAttribute("class", iconClassName);
 
-    var span = document.createElement("span");
+    var span = document.createElement(elementType);
     span.setAttribute("class", "directory");
     span.setAttribute("data-directory", dataValue);
     span.appendChild(i);
@@ -141,15 +141,17 @@ function renderDirectories(currentDir) {
 
     function addBrowserDirectory(name, directory, isOpen) {
         var iconClass = "fa fa-folder";
+        var elementType = "p";
         if (isOpen === true) {
             iconClass = "fa fa-folder-open";
+            elementType = "span";
         }
 
-        addDirectoryItem(directorylist, name, iconClass, directory);
+        addDirectoryItem(directorylist, name, iconClass, directory, elementType);
     }
 
     if (currentDir !== basedir) {
-        addBrowserDirectory(".", basedir);
+        addBrowserDirectory("/", basedir, true);
     }
 
     directories.forEach(function (dir) {
