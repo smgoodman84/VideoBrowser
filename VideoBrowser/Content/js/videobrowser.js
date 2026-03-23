@@ -17,6 +17,8 @@ directories[0].name = "C:\\Users\\Simon\\Desktop\\TV\\MyFavouriteShow";
 var playlist = [];
 
 var video = document.getElementById("video");
+var searchText = document.getElementById("searchText");
+searchText.addEventListener("input", onSearch);
 
 function playVideo(file) {
     return function () {
@@ -102,10 +104,39 @@ function forEachElementWithClassName(className, action) {
     }
 }
 
-function renderBrowser(currentDir) {
+
+function onSearch() {
+    renderFiles((fd) => inSearchResults(fd, searchText.value));
+}
+
+function inSearchResults(fileData, searchValue) {
+    return fileData.title.includes(searchValue);
+}
+
+function inDirectory(fileData, currentDir) {
+    return fileData.subdir === currentDir;
+}
+
+function renderFiles(includeFn) {
     var filelist = document.getElementById("filelist");
-    var directorylist = document.getElementById("directorylist");
     filelist.innerHTML = "";
+
+    filedata.forEach(function (fd) {
+        if (includeFn(fd)) {
+            var fileName = fd.subdir + "\\" + fd.filename;
+            var imageName = fd.subdir + "\\" + fd.imagename;
+            addFileItem(filelist, fileName, fd.title, fd.duration, imageName);
+        }
+    });
+
+    forEachElementWithClassName("video_listing",
+        function (element) {
+            element.addEventListener("click", playVideo(element));
+        });
+}
+
+function renderDirectories(currentDir) {
+    var directorylist = document.getElementById("directorylist");
     directorylist.innerHTML = "";
 
     function addBrowserDirectory(name, directory, isOpen) {
@@ -134,25 +165,16 @@ function renderBrowser(currentDir) {
         }
     });
 
-    filedata.forEach(function (fd) {
-        if (fd.subdir === currentDir) {
-            var fileName = fd.subdir + "\\" + fd.filename;
-            var imageName = fd.subdir + "\\" + fd.imagename;
-            addFileItem(filelist, fileName, fd.title, fd.duration, imageName);
-        }
-    });
-
-
-    forEachElementWithClassName("video_listing",
-        function (element) {
-            element.addEventListener("click", playVideo(element));
-        });
-
     forEachElementWithClassName("directory",
         function (element) {
             console.log("folder");
             element.addEventListener("click", onDirectoryClick(element));
         });
+}
+
+function renderBrowser(currentDir) {
+    renderDirectories(currentDir);
+    renderFiles((fd) => inDirectory(fd, currentDir));
 }
 
 renderBrowser(basedir);

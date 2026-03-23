@@ -37,10 +37,10 @@ span.directory {
 
 #videoplayer {
 	background-color: #426b9f;
-	padding: 25px 25px 50px 25px;
+	padding: 25px;
 	position: fixed;
     border-radius: 10px;
-    margin-top: 50px;
+    margin-top: 150px;
     margin-right: 50px;
     text-align: center;
 }
@@ -80,4 +80,26 @@ span.directory {
     background-color: #426b9f;
     color: #EEE;
     vertical-align: center;
+}
+
+#searchcontainer {
+    background-color: #426b9f;
+    color: #EEE;
+    
+    width: 400px;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    padding: 25px;
+    position: fixed;
+    border-radius: 10px;
+    text-align: center;
+}
+
+#searchText {
+    width: 100%;
+}
+
+#searchcontainer p {
+    margin: 0em;
+    padding-bottom: 1em;
 }
