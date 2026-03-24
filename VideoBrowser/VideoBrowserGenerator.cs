@@ -52,12 +52,20 @@ namespace VideoBrowser
             var i = 0;
             foreach (var file in orderedFiles)
             {
+                var uploadDate = "";
+                if (file.Timestamp.HasValue)
+                {
+                    var dateTime = DateTimeOffset.FromUnixTimeSeconds(file.Timestamp.Value);
+                    uploadDate = dateTime.ToString("dd MMM yy");
+                }
+                
                 sb.AppendLine(string.Format(@"filedata[{0}] = new Object();", i));
                 sb.AppendLine(string.Format(@"filedata[{0}].subdir = ""{1}"";", i, JsStringEscape(file.SubDirectory)));
                 sb.AppendLine(string.Format(@"filedata[{0}].filename = ""{1}"";", i, UrlEncode(JsStringEscape(file.Filename))));
                 sb.AppendLine(string.Format(@"filedata[{0}].imagename = ""{1}"";", i, UrlEncode(JsStringEscape(file.Imagename))));
                 sb.AppendLine(string.Format(@"filedata[{0}].title = ""{1}"";", i, JsStringEscape(file.Title)));
                 sb.AppendLine(string.Format(@"filedata[{0}].duration = ""{1}"";", i, JsStringEscape(file.Duration)));
+                sb.AppendLine(string.Format(@"filedata[{0}].uploadDate = ""{1}"";", i, JsStringEscape(uploadDate)));
                 i++;
             }
 

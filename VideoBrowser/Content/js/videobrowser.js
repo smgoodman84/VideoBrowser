@@ -7,6 +7,7 @@ filedata[0].filename = "Episode1.mkv";
 filedata[0].imagename = "Episode1.mkv.jpg";
 filedata[0].title = "Episode1";
 filedata[0].duration = "00:00:01";
+filedata[0].uploadDate = "24 Mar 2026";
 
 directories = [];
 directories[0] = new Object();
@@ -19,6 +20,7 @@ var playlist = [];
 var video = document.getElementById("video");
 var searchText = document.getElementById("searchText");
 searchText.addEventListener("input", onSearch);
+var filecount = document.getElementById("fileCount");
 
 function playVideo(file) {
     return function () {
@@ -61,7 +63,7 @@ function addDirectoryItem(directorylist, text, iconClassName, dataValue, element
     directorylist.appendChild(span);
 }
 
-function addFileItem(filelist, filename, title, duration, imagename) {
+function addFileItem(filelist, filename, title, duration, imagename, uploadDate) {
 
     var div = document.createElement("div");
     div.setAttribute("class", "video_listing");
@@ -86,12 +88,23 @@ function addFileItem(filelist, filename, title, duration, imagename) {
     p.appendChild(textNode);
     
     div.appendChild(p);
-    
+
+    var info = "";
     if (duration != "") {
-        var durationP = document.createElement("p");
-        var durationTextNode = document.createTextNode("[" + duration + "]");
-        durationP.appendChild(durationTextNode);
-        div.appendChild(durationP);
+        info = "[" + duration + "]";
+    }
+    if (uploadDate != "") {
+        if (info != "") {
+            info = info + " ";
+        }
+        info = info + uploadDate;
+    }
+    
+    if (info != "") {
+        var infoP = document.createElement("p");
+        var infoTextNode = document.createTextNode(info);
+        infoP.appendChild(infoTextNode);
+        div.appendChild(infoP);
     }
     
     filelist.appendChild(div);
@@ -121,13 +134,24 @@ function renderFiles(includeFn) {
     var filelist = document.getElementById("filelist");
     filelist.innerHTML = "";
 
+    var count = 0;
     filedata.forEach(function (fd) {
         if (includeFn(fd)) {
             var fileName = fd.subdir + "\\" + fd.filename;
             var imageName = fd.subdir + "\\" + fd.imagename;
-            addFileItem(filelist, fileName, fd.title, fd.duration, imageName);
+            addFileItem(filelist, fileName, fd.title, fd.duration, imageName, fd.uploadDate);
+            count += 1;
         }
     });
+
+
+    if (count === 0) {
+        fileCount.innerHTML = "";
+    } else if (count === 1) {
+        fileCount.innerHTML = "1 file";
+    } else {
+        fileCount.innerHTML = count + " files";
+    }
 
     forEachElementWithClassName("video_listing",
         function (element) {
@@ -150,9 +174,7 @@ function renderDirectories(currentDir) {
         addDirectoryItem(directorylist, name, iconClass, directory, elementType);
     }
 
-    if (currentDir !== basedir) {
-        addBrowserDirectory("/", basedir, true);
-    }
+    addBrowserDirectory("/", basedir, true);
 
     directories.forEach(function (dir) {
         var dirName;
@@ -176,7 +198,11 @@ function renderDirectories(currentDir) {
 
 function renderBrowser(currentDir) {
     renderDirectories(currentDir);
-    renderFiles((fd) => inDirectory(fd, currentDir));
+    if (currentDir === basedir) {
+        renderFiles((_) => true);
+    } else {
+        renderFiles((fd) => inDirectory(fd, currentDir));
+    }
 }
 
 renderBrowser(basedir);
