@@ -18,6 +18,7 @@ namespace VideoBrowser
             var fileContent = GenerateFileInternal(basedir, contentRoot);
 
             File.WriteAllText(outputFile, fileContent);
+            Console.WriteLine($"VideoBrowser generated {outputFile}");
         }
 
         private static string GenerateFileInternal(string basedir, string contentRoot)

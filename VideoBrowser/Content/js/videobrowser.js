@@ -18,9 +18,28 @@ directories[0].name = "C:\\Users\\Simon\\Desktop\\TV\\MyFavouriteShow";
 var playlist = [];
 
 var video = document.getElementById("video");
-var searchText = document.getElementById("searchText");
-searchText.addEventListener("input", onSearch);
-var filecount = document.getElementById("fileCount");
+var searchTextElement = document.getElementById("searchText");
+
+var directoryListElement = document.getElementById("directoryList");
+var fileListElement = document.getElementById("fileList");
+
+var fileCountElement = document.getElementById("fileCount");
+var pageNumberElement = document.getElementById("pageNumber");
+var pageCountElement = document.getElementById("pageCount");
+var nextPageElement = document.getElementById("nextPage");
+var previousPageElement = document.getElementById("previousPage");
+
+var pageNumber = 1;
+var pageCount = 1;
+var pageSize = 24;
+
+
+searchTextElement.addEventListener("input", onSearch);
+nextPageElement.addEventListener("click", nextPage);
+previousPageElement.addEventListener("click", previousPage);
+
+var includeEverythingFilterFunction = (_) => true;
+var fileFilterFunction = includeEverythingFilterFunction;
 
 function playVideo(file) {
     return function () {
@@ -43,11 +62,11 @@ function playVideo(file) {
 
 function onDirectoryClick(dir) {
     return function () {
-        renderBrowser(dir.dataset.directory);
+        selectDirectory(dir.dataset.directory);
     }
 }
 
-function addDirectoryItem(directorylist, text, iconClassName, dataValue, elementType) {
+function addDirectoryItem(text, iconClassName, dataValue, elementType) {
 
     var textNode = document.createTextNode(" " + text);
 
@@ -60,10 +79,10 @@ function addDirectoryItem(directorylist, text, iconClassName, dataValue, element
     span.appendChild(i);
     span.appendChild(textNode);
 
-    directorylist.appendChild(span);
+    directoryListElement.appendChild(span);
 }
 
-function addFileItem(filelist, filename, title, duration, imagename, uploadDate) {
+function addFileItem(filename, title, duration, imagename, uploadDate) {
 
     var div = document.createElement("div");
     div.setAttribute("class", "video_listing");
@@ -107,7 +126,7 @@ function addFileItem(filelist, filename, title, duration, imagename, uploadDate)
         div.appendChild(infoP);
     }
     
-    filelist.appendChild(div);
+    fileListElement.appendChild(div);
 }
 
 function forEachElementWithClassName(className, action) {
@@ -119,7 +138,8 @@ function forEachElementWithClassName(className, action) {
 
 
 function onSearch() {
-    renderFiles((fd) => inSearchResults(fd, searchText.value));
+    fileFilterFunction = (fd) => inSearchResults(fd, searchTextElement.value);
+    renderFiles();
 }
 
 function inSearchResults(fileData, searchValue) {
@@ -130,28 +150,65 @@ function inDirectory(fileData, currentDir) {
     return fileData.subdir === currentDir;
 }
 
-function renderFiles(includeFn) {
-    var filelist = document.getElementById("filelist");
-    filelist.innerHTML = "";
 
-    var count = 0;
-    filedata.forEach(function (fd) {
-        if (includeFn(fd)) {
-            var fileName = fd.subdir + "\\" + fd.filename;
-            var imageName = fd.subdir + "\\" + fd.imagename;
-            addFileItem(filelist, fileName, fd.title, fd.duration, imageName, fd.uploadDate);
-            count += 1;
-        }
-    });
-
-
-    if (count === 0) {
-        fileCount.innerHTML = "";
-    } else if (count === 1) {
-        fileCount.innerHTML = "1 file";
-    } else {
-        fileCount.innerHTML = count + " files";
+function previousPage() {
+    if (pageNumber > 1) {
+        setPageNumber(pageNumber - 1);
+        renderFiles();
     }
+}
+
+function nextPage() {
+    if (pageNumber < pageCount) {
+        setPageNumber(pageNumber + 1);
+        renderFiles();
+    }
+}
+
+function setPageNumber(newPageNumber) {
+    pageNumber = newPageNumber;
+    pageNumberElement.innerHTML = pageNumber;
+}
+
+function setPageCount(newPageCount) {
+    pageCount = newPageCount;
+    pageCountElement.innerHTML = newPageCount;
+}
+
+function setFileCount(count) {
+    if (count === 0) {
+        fileCountElement.innerHTML = "";
+    } else if (count === 1) {
+        fileCountElement.innerHTML = "1 file";
+    } else {
+        fileCountElement.innerHTML = count + " files";
+    }
+}
+
+function renderFiles() {
+    fileListElement.innerHTML = "";
+
+    var filteredFiles = filedata.filter(fileFilterFunction);
+
+    setFileCount(filteredFiles.length);
+    setPageCount(Math.ceil(filteredFiles.length / pageSize));
+    if (pageNumber > pageCount) {
+        setPageNumber(1);
+    }
+    
+    var start= (pageNumber - 1) * pageSize;
+    var end = start + pageSize;
+    if (end > filteredFiles.length) {
+        end = filteredFiles.length;
+    }
+    
+    var pagedFiles = filteredFiles.slice(start, end);
+
+    pagedFiles.forEach(function (fd) {
+        var fileName = fd.subdir + "\\" + fd.filename;
+        var imageName = fd.subdir + "\\" + fd.imagename;
+        addFileItem(fileName, fd.title, fd.duration, imageName, fd.uploadDate);
+    });
 
     forEachElementWithClassName("video_listing",
         function (element) {
@@ -160,8 +217,7 @@ function renderFiles(includeFn) {
 }
 
 function renderDirectories(currentDir) {
-    var directorylist = document.getElementById("directorylist");
-    directorylist.innerHTML = "";
+    directoryListElement.innerHTML = "";
 
     function addBrowserDirectory(name, directory, isOpen) {
         var iconClass = "fa fa-folder";
@@ -171,7 +227,7 @@ function renderDirectories(currentDir) {
             elementType = "span";
         }
 
-        addDirectoryItem(directorylist, name, iconClass, directory, elementType);
+        addDirectoryItem(name, iconClass, directory, elementType);
     }
 
     addBrowserDirectory("/", basedir, true);
@@ -196,13 +252,16 @@ function renderDirectories(currentDir) {
         });
 }
 
-function renderBrowser(currentDir) {
+function selectDirectory(currentDir) {
     renderDirectories(currentDir);
     if (currentDir === basedir) {
-        renderFiles((_) => true);
+        fileFilterFunction = includeEverythingFilterFunction;
     } else {
-        renderFiles((fd) => inDirectory(fd, currentDir));
+        fileFilterFunction = (fd) => inDirectory(fd, currentDir);
     }
+    setPageNumber(1);
+    renderFiles();
 }
 
-renderBrowser(basedir);
+setPageNumber(1);
+selectDirectory(basedir);

@@ -27,7 +27,7 @@ p i {
     margin-left: 4px;
 }
 
-#directorylist {
+#directoryList {
     padding: 1em;
 }
 
@@ -114,7 +114,7 @@ span.directory {
     margin: 0px 10px 10px 10px;
 }
 
-#fileCount {
+#pageInfo {
     width: 90%;
     text-align: right;
     color: #EEE;
