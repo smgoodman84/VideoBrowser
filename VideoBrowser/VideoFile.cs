@@ -8,22 +8,54 @@ namespace VideoBrowser
 {
     public class VideoFile
     {
-        public VideoFile(string baseDirectory, string subDirectory, string file)
-        {
-            BaseDirectory = baseDirectory;
-            SubDirectory = subDirectory;
+        public string Title { get; private set; }
+        public string Duration { get; private set; }
+        public int? Timestamp { get; private set; }
 
-            Filename = file.Substring(SubDirectory.Length + 1);
-            Imagename = GetImageFilename();
-            ProcessMetadata();
-            Title ??= Filename;
+        public string RelativeDirectory { get; private set; }
+        public string RelativePath { get; private set; }
+        public string RelativeImagePath { get; private set; }
+        
+        public bool IsVideoFile { get; private set; }
+        
+        public VideoFile(string basedir, string fullPath)
+        {
+            var fileInfo = new FileInfo(fullPath);
+            RelativeDirectory = Path.GetRelativePath(basedir, fileInfo.Directory.FullName);
+            RelativePath = Path.GetRelativePath(basedir, fullPath);
+            
+            var fullImagePath = GetImagePath(fullPath);
+            if (fullImagePath != null)
+            {
+                RelativeImagePath = Path.GetRelativePath(basedir, fullImagePath);
+            }
+            
+            ProcessMetadata(fullPath);
+            Title ??= TitleFromFile(fileInfo);
             Timestamp ??= int.MinValue;
             Duration ??= "";
+            IsVideoFile = IsVideoFilePath(fileInfo);
         }
 
-        private void ProcessMetadata()
+        private string TitleFromFile(FileInfo fileInfo)
         {
-            var metadataFilename = Path.Join(SubDirectory, $"{Filename}.json");
+            if (fileInfo == null)
+            {
+                return "";
+            }
+            
+            var name = fileInfo.Name ?? "";
+            if (name.Length > fileInfo.Extension.Length)
+            {
+                name = name.Substring(0, name.Length - fileInfo.Extension.Length);
+            }
+            
+            return name;
+        }
+
+        private void ProcessMetadata(string fullPath)
+        {
+            var metadataFilename = $"{fullPath}.json";
             if (!File.Exists(metadataFilename))
             {
                 return;
@@ -58,21 +90,21 @@ namespace VideoBrowser
         }
 
         private static string[] _imageExtensions = new[] { "jpg", "webp" };
-        private string GetImageFilename()
+        private string GetImagePath(string fullPath)
         {
-            if (!Filename.Contains('.'))
+            if (!fullPath.Contains('.'))
             {
                 return null;
             }
             
-            var filenameNoExtension = Filename.Substring(0, Filename.LastIndexOf('.'));
+            var filenameNoExtension = fullPath.Substring(0, fullPath.LastIndexOf('.'));
 
-            foreach (var name in new string[] { filenameNoExtension, Filename })
+            foreach (var name in new string[] { filenameNoExtension, fullPath })
             {
                 foreach (var extension in _imageExtensions)
                 {
                     var imageName = $"{name}.{extension}";
-                    if (File.Exists(Path.Join(SubDirectory, imageName)))
+                    if (File.Exists(imageName))
                     {
                         return imageName;
                     }
@@ -81,42 +113,31 @@ namespace VideoBrowser
 
             return null;
         }
+
+
+        private static readonly List<string> _videoExtensions =
+        [
+            ".mkv",
+            ".avi",
+            ".mp4",
+            ".webm"
+        ];
         
-
-        public string BaseDirectory { get; set; }
-        public string SubDirectory { get; set; }
-        public string Filename { get; set; }
-        public string Imagename { get; set; }
-        public string Title { get; set; }
-        public string Duration { get; set; }
-        public int? Timestamp { get; set; }
-
-        public string Fullpath
+        public static bool IsVideoFilePath(string fullPath)
         {
-            get { return SubDirectory + "\\" + Filename; }
+            return IsVideoFilePath(new FileInfo(fullPath));
         }
-
-        public static bool IsVideoFile(string filename)
+        
+        private static bool IsVideoFilePath(FileInfo fileInfo)
         {
-            var extensions = new List<string>()
-            {
-                ".mkv",
-                ".avi",
-                ".mp4",
-                ".webm"
-            };
-
-            return extensions.Any(filename.EndsWith) && !filename.StartsWith("._");
-        }
-        private bool IsVideoFile()
-        {
-            return IsVideoFile(Filename);
+            return _videoExtensions.Any(fileInfo.Extension.ToLower().Equals)
+                   && !fileInfo.Name.StartsWith("._");
         }
 
         public static List<VideoFile> GetVideoFilesInDirectory(string baseDirectory)
         {
             var files = GetFiles(baseDirectory)
-                .Where(f => f.IsVideoFile())
+                .Where(f => f.IsVideoFile)
                 .ToList();
 
             return files;
@@ -130,7 +151,7 @@ namespace VideoBrowser
             }
 
             var subFiles = Directory.GetDirectories(dir).SelectMany(sd => GetFiles(basedir, sd));
-            var files = Directory.GetFiles(dir).Select(f => new VideoFile(basedir, dir, f));
+            var files = Directory.GetFiles(dir).Select(f => new VideoFile(basedir, f));
 
             var allFiles = files.Union(subFiles).ToList();
 

@@ -38,17 +38,20 @@ namespace VideoBrowser
 
         private static string GetJavascriptData(string basedir)
         {
-            var files = VideoFile.GetVideoFilesInDirectory(basedir).OrderBy(x => x.Fullpath);
-            var directories = GetDirectories(basedir).OrderBy(x => x);
+            var files = VideoFile.GetVideoFilesInDirectory(basedir)
+                .ToList();
+            
+            var directories = GetDirectories(basedir)
+                .OrderBy(x => x)
+                .ToList();
 
             var sb = new StringBuilder();
             sb.AppendLine("var filedata = [];");
             sb.AppendLine("var directories = [];");
-            sb.AppendLine(string.Format(@"var basedir =""{0}"";", basedir.Replace("\\", "\\\\")));
 
             var orderedFiles = files
                 .OrderByDescending(f => f.Timestamp ?? int.MinValue)
-                .ThenBy(f => f.Title ?? f.Filename);
+                .ThenBy(f => f.Title ?? f.Title);
             
             var i = 0;
             foreach (var file in orderedFiles)
@@ -61,9 +64,9 @@ namespace VideoBrowser
                 }
                 
                 sb.AppendLine(string.Format(@"filedata[{0}] = new Object();", i));
-                sb.AppendLine(string.Format(@"filedata[{0}].subdir = ""{1}"";", i, JsStringEscape(file.SubDirectory)));
-                sb.AppendLine(string.Format(@"filedata[{0}].filename = ""{1}"";", i, UrlEncode(JsStringEscape(file.Filename))));
-                sb.AppendLine(string.Format(@"filedata[{0}].imagename = ""{1}"";", i, UrlEncode(JsStringEscape(file.Imagename))));
+                sb.AppendLine(string.Format(@"filedata[{0}].subdir = ""{1}"";", i, JsStringEscape(file.RelativeDirectory)));
+                sb.AppendLine(string.Format(@"filedata[{0}].filename = ""{1}"";", i, UrlEncode(JsStringEscape(file.RelativePath))));
+                sb.AppendLine(string.Format(@"filedata[{0}].imagename = ""{1}"";", i, UrlEncode(JsStringEscape(file.RelativeImagePath))));
                 sb.AppendLine(string.Format(@"filedata[{0}].title = ""{1}"";", i, JsStringEscape(file.Title)));
                 sb.AppendLine(string.Format(@"filedata[{0}].duration = ""{1}"";", i, JsStringEscape(file.Duration)));
                 sb.AppendLine(string.Format(@"filedata[{0}].uploadDate = ""{1}"";", i, JsStringEscape(uploadDate)));
@@ -73,9 +76,17 @@ namespace VideoBrowser
             i = 0;
             foreach (var dir in directories)
             {
+                var relativeParent = Path.GetRelativePath(basedir, ParentDir(dir));
+                var relativeName = Path.GetRelativePath(basedir, dir);
+
+                if (relativeParent == ".")
+                {
+                    relativeParent = "";
+                }
+                
                 sb.AppendLine(string.Format(@"directories[{0}] = new Object();", i));
-                sb.AppendLine(string.Format(@"directories[{0}].parent = ""{1}"";", i, JsStringEscape(ParentDir(dir))));
-                sb.AppendLine(string.Format(@"directories[{0}].name = ""{1}"";", i, JsStringEscape(dir)));
+                sb.AppendLine(string.Format(@"directories[{0}].parent = ""{1}"";", i, JsStringEscape(relativeParent)));
+                sb.AppendLine(string.Format(@"directories[{0}].name = ""{1}"";", i, relativeName));
                 i++;
             }
 
@@ -120,7 +131,7 @@ namespace VideoBrowser
         private static bool ContainsVideoFile(string dir)
         {
             var files = Directory.GetFiles(dir);
-            return files.Any(VideoFile.IsVideoFile);
+            return files.Any(VideoFile.IsVideoFilePath);
         }
 
         public static string GetCssElement(string cssFilename)

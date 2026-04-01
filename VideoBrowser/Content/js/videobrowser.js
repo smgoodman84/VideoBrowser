@@ -1,8 +1,7 @@
 ﻿//*
 var filedata = [];
-var basedir = "C:\\Users\\Simon\\Desktop\\TV";
 filedata[0] = new Object();
-filedata[0].subdir = "C:\\Users\\Simon\\Desktop\\TV";
+filedata[0].subdir = "TV/MyFavouriteShow";
 filedata[0].filename = "Episode1.mkv";
 filedata[0].imagename = "Episode1.mkv.jpg";
 filedata[0].title = "Episode1";
@@ -11,13 +10,19 @@ filedata[0].uploadDate = "24 Mar 2026";
 
 directories = [];
 directories[0] = new Object();
-directories[0].parent = "C:\\Users\\Simon\\Desktop\\TV";
-directories[0].name = "C:\\Users\\Simon\\Desktop\\TV\\MyFavouriteShow";
+directories[0].parent = "";
+directories[0].name = "TV";
+directories[1] = new Object();
+directories[1].parent = "TV";
+directories[1].name = "TV/MyFavouriteShow";
 //*/
 
 var playlist = [];
 
-var video = document.getElementById("video");
+var videoElement = document.getElementById("video");
+var videoSourceElement = document.getElementById("videoSource");
+var captionElement = document.getElementById("caption");
+
 var searchTextElement = document.getElementById("searchText");
 
 var directoryListElement = document.getElementById("directoryList");
@@ -39,24 +44,16 @@ nextPageElement.addEventListener("click", nextPage);
 previousPageElement.addEventListener("click", previousPage);
 
 var includeEverythingFilterFunction = (_) => true;
-var fileFilterFunction = includeEverythingFilterFunction;
+var directoryFilterFunction = includeEverythingFilterFunction;
+var searchFilterFunction = includeEverythingFilterFunction;
 
 function playVideo(file) {
     return function () {
-        var vsource = document.getElementById("vsource");
-        var caption = document.getElementById("caption");
+        videoSourceElement.setAttribute("src", file.dataset.filename);
+        captionElement.innerHTML = file.dataset.title;
 
-        var filename = file.dataset.filename;
-        var title = file.dataset.title;
-        vsource.setAttribute("src", filename);
-
-        var actualSrc = vsource.getAttribute("src");
-
-        var displayFilename = actualSrc.substr(actualSrc.lastIndexOf("\\") + 1);
-        caption.innerHTML = title;
-
-        video.load();
-        video.play();
+        videoElement.load();
+        videoElement.play();
     }
 }
 
@@ -138,7 +135,7 @@ function forEachElementWithClassName(className, action) {
 
 
 function onSearch() {
-    fileFilterFunction = (fd) => inSearchResults(fd, searchTextElement.value);
+    searchFilterFunction = (fd) => inSearchResults(fd, searchTextElement.value);
     renderFiles();
 }
 
@@ -147,7 +144,8 @@ function inSearchResults(fileData, searchValue) {
 }
 
 function inDirectory(fileData, currentDir) {
-    return fileData.subdir === currentDir;
+    return fileData.subdir === currentDir
+        || fileData.subdir.startsWith(currentDir + "/");
 }
 
 
@@ -188,7 +186,9 @@ function setFileCount(count) {
 function renderFiles() {
     fileListElement.innerHTML = "";
 
-    var filteredFiles = filedata.filter(fileFilterFunction);
+    var filteredFiles = filedata
+        .filter(directoryFilterFunction)
+        .filter(searchFilterFunction);
 
     setFileCount(filteredFiles.length);
     setPageCount(Math.ceil(filteredFiles.length / pageSize));
@@ -205,9 +205,7 @@ function renderFiles() {
     var pagedFiles = filteredFiles.slice(start, end);
 
     pagedFiles.forEach(function (fd) {
-        var fileName = fd.subdir + "\\" + fd.filename;
-        var imageName = fd.subdir + "\\" + fd.imagename;
-        addFileItem(fileName, fd.title, fd.duration, imageName, fd.uploadDate);
+        addFileItem(fd.filename, fd.title, fd.duration, fd.imagename, fd.uploadDate);
     });
 
     forEachElementWithClassName("video_listing",
@@ -230,17 +228,21 @@ function renderDirectories(currentDir) {
         addDirectoryItem(name, iconClass, directory, elementType);
     }
 
-    addBrowserDirectory("/", basedir, true);
+    addBrowserDirectory("/", "", true);
 
     directories.forEach(function (dir) {
         var dirName;
+        if (dir.parent === "") {
+            dirName = dir.name;
+        } else {
+            dirName = dir.name.substr(dir.parent.length + 1)
+        }
+        
         if (dir.parent === currentDir) {
-            dirName = dir.name.substr(dir.parent.length + 1);
             addBrowserDirectory(dirName, dir.name);
         }
 
         if (currentDir.substr(0, dir.name.length) === dir.name) {
-            dirName = dir.name.substr(dir.parent.length + 1);
             addBrowserDirectory(dirName, dir.name, true);
         }
     });
@@ -254,14 +256,14 @@ function renderDirectories(currentDir) {
 
 function selectDirectory(currentDir) {
     renderDirectories(currentDir);
-    if (currentDir === basedir) {
-        fileFilterFunction = includeEverythingFilterFunction;
+    if (currentDir === "") {
+        directoryFilterFunction = includeEverythingFilterFunction;
     } else {
-        fileFilterFunction = (fd) => inDirectory(fd, currentDir);
+        directoryFilterFunction = (fd) => inDirectory(fd, currentDir);
     }
     setPageNumber(1);
     renderFiles();
 }
 
 setPageNumber(1);
-selectDirectory(basedir);
+selectDirectory("");
