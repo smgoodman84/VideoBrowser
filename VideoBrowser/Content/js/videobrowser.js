@@ -91,10 +91,7 @@ function addFileItem(filename, title, duration, imagename, uploadDate) {
         img.setAttribute("src", imagename);
         img.setAttribute("class", "video_thumbnail");
 
-        var br = document.createElement("br");
-
         div.appendChild(img);
-        div.appendChild(br);
     }
     
     var textNode = document.createTextNode(title);

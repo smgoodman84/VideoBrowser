@@ -67,8 +67,7 @@ span.directory {
 
 .video_thumbnail {
     height: 150px;
-    margin: 0 auto;
-    padding-top: 1em;
+    margin: 1em auto 0 auto;
 }
 
 .video_listing {
