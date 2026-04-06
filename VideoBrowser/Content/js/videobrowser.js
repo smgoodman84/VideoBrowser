@@ -57,9 +57,21 @@ function loadLocation() {
 
 function setLocation() {
     var url = new URL(window.location);
-    url.searchParams.set("page", pageNumber);
-    url.searchParams.set("dir", currentDirectory);
-    url.searchParams.set("search", searchTextElement.value);
+    if (pageNumber != 1 && pageNumber != 0) {
+        url.searchParams.set("page", pageNumber);
+    } else {
+        url.searchParams.delete("page");
+    }
+    if (currentDirectory != "") {
+        url.searchParams.set("dir", currentDirectory);
+    } else {
+        url.searchParams.delete("dir");
+    }
+    if (searchTextElement.value != "") {
+        url.searchParams.set("search", searchTextElement.value);
+    } else {
+        url.searchParams.delete("search");
+    }
     history.pushState({
         page: pageNumber,
         dir: currentDirectory,
@@ -201,7 +213,7 @@ function setPageCount(newPageCount) {
 
 function setFileCount(count) {
     if (count === 0) {
-        fileCountElement.innerHTML = "";
+        fileCountElement.innerHTML = "0 files";
     } else if (count === 1) {
         fileCountElement.innerHTML = "1 file";
     } else {
@@ -218,8 +230,13 @@ function renderFiles() {
 
     setFileCount(filteredFiles.length);
     setPageCount(Math.ceil(filteredFiles.length / pageSize));
-    if (pageNumber > pageCount) {
-        setPageNumber(1);
+    
+    if (filteredFiles.length === 0) {
+        setPageNumber(0);
+    } else {
+        if (pageNumber === 0 || pageNumber > pageCount) {
+            setPageNumber(1);
+        }
     }
     
     var start= (pageNumber - 1) * pageSize;
