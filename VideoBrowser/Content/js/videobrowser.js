@@ -34,10 +34,40 @@ var pageCountElement = document.getElementById("pageCount");
 var nextPageElement = document.getElementById("nextPage");
 var previousPageElement = document.getElementById("previousPage");
 
+var currentDirectory = "";
 var pageNumber = 1;
 var pageCount = 1;
 var pageSize = 24;
 
+
+function loadLocation() {
+    var url = new URL(window.location);
+    if (url.searchParams.has("page")) {
+        pageNumber = parseInt(url.searchParams.get("page"));
+    }
+    if (url.searchParams.has("dir")) {
+        currentDirectory = url.searchParams.get("dir");
+    }
+    if (url.searchParams.has("search")) {
+        searchTextElement.value = url.searchParams.get("search");
+    }
+
+    selectDirectory(currentDirectory, pageNumber);
+}
+
+function setLocation() {
+    var url = new URL(window.location);
+    url.searchParams.set("page", pageNumber);
+    url.searchParams.set("dir", currentDirectory);
+    url.searchParams.set("search", searchTextElement.value);
+    history.pushState({
+        page: pageNumber,
+        dir: currentDirectory,
+        search: searchTextElement.value
+    }, "", url);
+}
+addEventListener("popstate", (event) => { loadLocation() })
+addEventListener('load', () => { setLocation() });
 
 searchTextElement.addEventListener("input", onSearch);
 nextPageElement.addEventListener("click", nextPage);
@@ -45,7 +75,7 @@ previousPageElement.addEventListener("click", previousPage);
 
 var includeEverythingFilterFunction = (_) => true;
 var directoryFilterFunction = includeEverythingFilterFunction;
-var searchFilterFunction = includeEverythingFilterFunction;
+var searchFilterFunction = (fd) => inSearchResults(fd, searchTextElement.value);
 
 function playVideo(file) {
     return function () {
@@ -59,7 +89,7 @@ function playVideo(file) {
 
 function onDirectoryClick(dir) {
     return function () {
-        selectDirectory(dir.dataset.directory);
+        selectDirectory(dir.dataset.directory, 1);
     }
 }
 
@@ -132,7 +162,6 @@ function forEachElementWithClassName(className, action) {
 
 
 function onSearch() {
-    searchFilterFunction = (fd) => inSearchResults(fd, searchTextElement.value);
     renderFiles();
 }
 
@@ -209,6 +238,8 @@ function renderFiles() {
         function (element) {
             element.addEventListener("click", playVideo(element));
         });
+
+    setLocation();
 }
 
 function renderDirectories(currentDir) {
@@ -251,16 +282,16 @@ function renderDirectories(currentDir) {
         });
 }
 
-function selectDirectory(currentDir) {
+function selectDirectory(currentDir, newPageNumber) {
+    currentDirectory = currentDir;
     renderDirectories(currentDir);
     if (currentDir === "") {
         directoryFilterFunction = includeEverythingFilterFunction;
     } else {
         directoryFilterFunction = (fd) => inDirectory(fd, currentDir);
     }
-    setPageNumber(1);
+    setPageNumber(newPageNumber);
     renderFiles();
 }
 
-setPageNumber(1);
-selectDirectory("");
+loadLocation();
